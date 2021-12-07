@@ -9,6 +9,7 @@ from aiocache import cached
 from fastapi import Request
 
 from fastapi_misskey.exceptions import NotCompletedAuthException, SomethingWasWrong
+from fastapi_misskey.models import User
 from fastapi_misskey.utils import remove_empty_dict
 
 
@@ -38,11 +39,19 @@ class MisskeyAuthClient:
 
     @cached(ttl=550)
     async def check_support_miauth(self):
+        """
+        miauth をサポートしているインスタンスか否かを返します(v10, v11 と v12の区別)
+        """
+        
         async with self._client_session.post(f'{self.host}/api/meta') as res:
             data = await res.json()
             return bool(data.get('miauth'))
 
     async def get_auth_url(self):
+        """
+        認証に使用するurlを生成して返します
+        """
+        
         field = await remove_empty_dict({'name': self.name, 'description': self.description})
         if await self.check_support_miauth():
             field['callback'] = self.callback
@@ -63,6 +72,10 @@ class MisskeyAuthClient:
 
     @cached(ttl=550)
     async def get_access_token(self, session_code: Optional[str] = None, token: Optional[str] = None):
+        """
+        ユーザーのアクセストークンを取得します
+        """
+        
         if self.secret is None:
             raise SomethingWasWrong()
         if await self.check_support_miauth():
@@ -80,8 +93,13 @@ class MisskeyAuthClient:
                 return hashlib.sha256(f'{access_token + self.secret}'.encode('utf-8')).hexdigest(), data.pop('accessToken')
 
     @cached(ttl=550)
-    async def get_user(self, request: Request):
+    async def get_user(self, request: Request) -> User:
+        """
+        アクセストークンのユーザーを取得します
+        """
+        
         token = request.headers.get('Authorization')
         field = {'i': token}
         async with self._client_session.post(f'{self.host}/api/i', json=field) as res:
-            return await res.json()
+            data = await res.json()
+            return User(**data)
