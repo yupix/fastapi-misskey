@@ -21,7 +21,7 @@ class MisskeyAuthClient:
                  name: str,
                  callback: str,
                  description: str,
-                 permissions=None,
+                 permissions: Optional[List[str]]=None,
                  *,
                  icon: Optional[str] = None
                  ):
@@ -79,6 +79,7 @@ class MisskeyAuthClient:
                 access_token = data['accessToken']
                 return hashlib.sha256(f'{access_token + self.secret}'.encode('utf-8')).hexdigest(), data.pop('accessToken')
 
+    @cached(ttl=550)
     async def get_user(self, request: Request):
         token = request.headers.get('Authorization')
         field = {'i': token}
