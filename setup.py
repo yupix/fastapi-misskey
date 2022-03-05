@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-readme = open('README.md', 'r').read()
+readme = open('README.md', 'r', encoding='utf-8').read()
 
 setup(
     name="fastapi_misskey",
