@@ -84,7 +84,8 @@ class MisskeyAuthClient:
             field['callback'] = self.callback
             field['permissions'] = self.permissions
             query = urlencode(field)
-            return f'{host}/miauth/{uuid.uuid4()}?{query}'
+            self.__session_token = uuid.uuid4()
+            return f'{host}/miauth/{self.__session_token}?{query}'
         else:
             field['callbackUrl'] = self.callback
             field['permission'] = self.permissions
@@ -120,7 +121,6 @@ class MisskeyAuthClient:
             async with self._client_session.post(f'{host}/api/auth/session/userkey', data=json.dumps(field)) as res:
                 data = await res.json()
                 access_token = data['accessToken']
-                print(access_token)
                 return hashlib.sha256(f'{access_token + self.secret}'.encode('utf-8')).hexdigest(), data.pop('accessToken')
 
     def get_user(self, host: Optional[str]=None):
@@ -132,7 +132,6 @@ class MisskeyAuthClient:
             _host = host or self.__host
 
             token = request.cookies.get('token')
-            print(token)
             field = {'i': token}
             async with self._client_session.post(f'{_host}/api/i', json=field) as res:
                 data = await res.json()
