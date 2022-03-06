@@ -6,3 +6,6 @@ class NotCompletedAuthException(Exception):
 
 class SomethingWasWrong(Exception):
     pass
+
+class ClientError(Exception):
+    pass

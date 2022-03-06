@@ -3,6 +3,9 @@ from typing import Optional
 from fastapi import Depends, FastAPI
 
 from fastapi_misskey.client import MisskeyAuthClient
+from fastapi.responses import JSONResponse
+
+from fastapi_misskey.exceptions import ClientError
 
 app = FastAPI()
 
@@ -13,10 +16,12 @@ app = FastAPI()
 #     description='FastAPI Misskey Auth'
 # )
 
+#VoM1ov7cjJYdfUgqIUY7g1zqrjdi2DDm
+
 misskey = MisskeyAuthClient(
     'https://kr.akirin.xyz',
     'test',
-    'http://localhost:8000/callback',
+    'http://localhost:8080/callback',
     description='FastAPI Misskey Auth'
 )
 
@@ -29,13 +34,12 @@ async def login():
 @app.get('/callback')
 async def callback(session: Optional[str] = None, token: Optional[str] = None):
     token, user = await misskey.get_access_token(session, token)
-    return {'token': token, 'user': user}
+    response = JSONResponse({'token': token, 'user': user})
+    response.set_cookie('token', token)
+    return response
 
 
 @app.get('/profile')
-async def profile(user=Depends(misskey.get_user)):
-    if user.get('error'):
-        return user
-    else:
-        return {'user': user}
+async def profile(user=Depends(misskey.get_user('https://rn.akarinext.org'))):
+    return {'user': user}
 
