@@ -96,7 +96,7 @@ class MisskeyAuthClient:
             field = json.dumps({'appSecret': self.secret}, ensure_ascii=False)
             async with self._client_session.post(f'{host}/api/auth/session/generate', data=field) as res:
                 data = await res.json()
-                self.__session_token = data
+                self.__session_token = data['token']
                 return data['url']
 
     @cached(ttl=550)
